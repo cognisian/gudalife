@@ -1,0 +1,5 @@
+<gresources>
+  <gresource prefix="/com/cognisian/gudalife">
+    <file alias="gtk/menus.ui" preprocess="xml-stripblanks">app-menu.ui</file>
+  </gresource>
+</gresources>

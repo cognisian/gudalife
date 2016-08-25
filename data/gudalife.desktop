@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=GudaLife
+Exec=gudalife
+Type=Application
+Icon=gudalife
+Comment=Conway's Game of Life with CUDA
+Categories=GTK;GNOME;Game;

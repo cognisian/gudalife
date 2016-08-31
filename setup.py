@@ -153,10 +153,10 @@ setup(name=APPNAME,
       ],
       install_requires=required,
       data_files=[
-          (iconsrootdir + 'hicolor/256x256/apps', ['data/pixmaps/256x256/apps/*']),
+          (datadir, ['data/pixmaps/256x256/apps/gudalife-app.png']),
 
           (launcherdir, ['data/gudalife.desktop']),
-          (bindir, ['gudalife'])
+          (bindir, ['gudalife.py'])
       ],
       classifiers=[
         'Development Status :: 3 - Alpha',

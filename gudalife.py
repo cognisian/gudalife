@@ -9,15 +9,21 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gio
 
+datadir = '/usr/share'
 localedir = '/usr/share/locale'
+pkgdatadir = '/usr/share/gudalife'
+appdatadir = '/usr/share/gudalife'
+iconsrootdir = '/usr/share/icons'
+
 srcdir = os.path.abspath(os.path.dirname(__file__))
 if os.path.exists(os.path.join(srcdir, 'gudalife.doap')):
     print('Running from source tree, using local files')
-    pkgdatadir = os.path.join(srcdir, 'data/resources')
+    datadir = os.path.join(srcdir, 'data')
+    pkgdatadir = datadir
+    appdatadir = os.path.join(datadir, 'resources')
+    iconsrootdir = os.path.join(datadir, 'pixmaps')
     if not os.environ.get('GSETTINGS_SCHEMA_DIR'):
-        os.environ['GSETTINGS_SCHEMA_DIR'] = pkgdatadir
-else:
-    pkgdatadir = '/usr/share/gudalife'
+        os.environ['GSETTINGS_SCHEMA_DIR'] = pkgdatadir + '/schemas'
 
 
 def install_excepthook():
@@ -39,12 +45,9 @@ if __name__ == "__main__":
     gettext.bindtextdomain('gudalife', localedir)
     gettext.textdomain('gudalife')
 
-    resource = Gio.resource_load(os.path.join(pkgdatadir, 'gudalife-resources.gresource'))
-    Gio.Resource._register(resource)
-
     from gudalife.application import GudaLife
 
-    app = GudaLife()
+    app = GudaLife(appdatadir, iconsrootdir)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     exit_status = app.run(sys.argv)
     sys.exit(exit_status)

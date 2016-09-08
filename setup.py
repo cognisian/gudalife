@@ -134,8 +134,10 @@ with open('%s.in' % APPNAME) as f:
     gudalife = f.read()
     gudalife = gudalife.replace('@datadir@', datadir)
     gudalife = gudalife.replace('@appdatadir@', appdatadir)
-    gudalife = gudalife.replace('@localedir@', localedir)
     gudalife = gudalife.replace('@pkgdatadir@', pkgdatadir)
+    gudalife = gudalife.replace('@iconsrootdir@', iconsrootdir)
+    gudalife = gudalife.replace('@localedir@', localedir)
+
     with open('%s.py' % APPNAME, 'w') as fw:
         fw.write(gudalife)
 

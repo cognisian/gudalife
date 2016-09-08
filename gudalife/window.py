@@ -13,7 +13,12 @@ class GudaLifeWindowHandler(GObject.GObject):
         self._status = app.builder.get_object('status')
         self._status.push(1, 'Welcome to GudaLife')
 
+        self._draw_state = True
+        self._run_state = False
+
     def draw_pixel(self, widget, x, y):
+
+        # Create the "pixel"
         update_rect = Gdk.Rectangle()
         update_rect.x = x
         update_rect.y = y
@@ -46,10 +51,42 @@ class GudaLifeWindowHandler(GObject.GObject):
         cairo_ctx.set_source_rgb(0, 0, 0)
         cairo_ctx.paint()
 
+    def on_life_draw(self, widget, event=None):
+        if widget.get_active():
+            self._draw_state = True
+        else:
+            self._draw_state = False
+
+    def on_life_play(self, widget, event=None):
+        widget.set_sensitive(False)
+
+        app = self._window.get_application()
+
+        toggle = app.builder.get_object('draw')
+        toggle.set_active(False)
+        toggle.set_sensitive(False)
+
+        button = app.builder.get_object('stop')
+        button.set_sensitive(True)
+
+    def on_life_stop(self, widget, event=None):
+        widget.set_sensitive(False)
+
+        app = self._window.get_application()
+
+        toggle = app.builder.get_object('draw')
+        toggle.set_active(True)
+        toggle.set_sensitive(True)
+
+        button = app.builder.get_object('play')
+        button.set_sensitive(True)
+
     def on_mouse_move(self, widget, event=None):
         (window, x, y, state) = event.window.get_pointer()
-        if state & Gdk.ModifierType.BUTTON1_MASK:
-            self.draw_pixel(widget, x, y)
+
+        if self._draw_state:
+            if state & Gdk.ModifierType.BUTTON1_MASK:
+                self.draw_pixel(widget, x, y)
 
         self._status.push(1, '(%i, %i)' % (x, y))
 
@@ -57,5 +94,5 @@ class GudaLifeWindowHandler(GObject.GObject):
         if self._surface is None:
             return False
 
-        if event.button == 1:
+        if self._draw_state & event.button == 1:
             self.draw_pixel(widget, event.x, event.y)

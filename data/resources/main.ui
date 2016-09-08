@@ -17,21 +17,6 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkHeaderBar" id="header">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="spacing">4</property>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkPaned">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -39,13 +24,50 @@
             <property name="position_set">True</property>
             <property name="wide_handle">True</property>
             <child>
-              <object class="GtkRevealer">
+              <object class="GtkToolPalette" id="life_palette">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="transition_type">none</property>
-                <property name="reveal_child">True</property>
+                <property name="orientation">vertical</property>
+                <property name="icon_size">button</property>
+                <property name="toolbar_style">icons</property>
                 <child>
-                  <placeholder/>
+                  <object class="GtkToolItemGroup" id="gliders">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Gliders</property>
+                    <child>
+                      <object class="GtkToggleToolButton" id="glider">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Glider Gun</property>
+                        <property name="label" translatable="yes">Glider Gun</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-connect</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolItemGroup" id="generators">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Generators</property>
+                    <child>
+                      <object class="GtkToggleToolButton" id="honeypot">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Honeypot</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-select-color</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -54,14 +76,103 @@
               </packing>
             </child>
             <child>
-              <object class="GtkDrawingArea" id="life">
+              <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
-                <signal name="button-release-event" handler="on_mouse_release" swapped="no"/>
-                <signal name="configure-event" handler="on_config_drawarea" swapped="no"/>
-                <signal name="draw" handler="on_draw" swapped="no"/>
-                <signal name="motion-notify-event" handler="on_mouse_move" swapped="no"/>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkToolbar" id="toolbar">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkToggleToolButton" id="draw">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Freehand drawing of Game of Life positions</property>
+                        <property name="label" translatable="yes">Draw</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-add</property>
+                        <property name="active">True</property>
+                        <signal name="toggled" handler="on_life_draw" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorToolItem" id="sep1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkToolButton" id="play">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Start the Game of Life animation with current contents</property>
+                        <property name="label" translatable="yes">Play</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-media-play</property>
+                        <signal name="clicked" handler="on_life_play" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkToolButton" id="stop">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Stops the current Game of Life animation</property>
+                        <property name="label" translatable="yes">Stop</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-media-stop</property>
+                        <signal name="clicked" handler="on_life_stop" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorToolItem" id="sep2">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="life">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+                    <signal name="button-release-event" handler="on_mouse_release" swapped="no"/>
+                    <signal name="configure-event" handler="on_config_drawarea" swapped="no"/>
+                    <signal name="draw" handler="on_draw" swapped="no"/>
+                    <signal name="motion-notify-event" handler="on_mouse_move" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="resize">True</property>
@@ -72,7 +183,7 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -91,7 +202,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </object>

@@ -155,7 +155,8 @@ setup(name=APPNAME,
       ],
       install_requires=required,
       data_files=[
-          (datadir, ['data/pixmaps/256x256/apps/gudalife-app.png']),
+          (datadir, ['data/resources/pixmaps/256x256/apps/gudalife.png',
+                     'data/resources/pixmaps/16x16/cursor.png']),
 
           (launcherdir, ['data/gudalife.desktop']),
           (bindir, ['gudalife.py'])

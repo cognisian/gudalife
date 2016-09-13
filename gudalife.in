@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     from gudalife.application import GudaLife
 
-    app = GudaLife(appdatadir, iconsrootdir)
+    app = GudaLife(appdatadir)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     exit_status = app.run(sys.argv)
     sys.exit(exit_status)

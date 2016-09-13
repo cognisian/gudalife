@@ -3,5 +3,7 @@
     <file preprocess="xml-stripblanks">app-menu.ui</file>
     <file preprocess="xml-stripblanks">about.ui</file>
     <file preprocess="xml-stripblanks">main.ui</file>
+    <file alias="gudalife.png">pixmaps/256x256/apps/gudalife.png</file>
+    <file alias="cursor.png">pixmaps/16x16/cursor.png</file>
   </gresource>
 </gresources>

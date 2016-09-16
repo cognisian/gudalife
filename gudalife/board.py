@@ -49,6 +49,7 @@ class GudaLifeBoard:
     def will_be_alive(self, row, col):
         # Calculate if the cell located at row, col will be alive or dead next # round
 
+        # Check the bounds (no wrap around) of the neighbourhood or row,col
         start_row = row - 1
         if (start_row < 0):
             start_row = 0
@@ -65,22 +66,24 @@ class GudaLifeBoard:
         if (end_col >= self._width):
             end_col = self._width - 1
 
-        neighbours = np.zeros((end_row - start_row + 1,
-                               end_col - start_col + 1), dtype=np.bool)
-        i = 0
-        for check_row in range(start_row, end_row + 1):
-            j = 0
-            for check_col in range(start_col, end_col + 1):
-                col_idx = check_col // 8
-                neighbours[i, j] = (self._curr_state[check_row, col_idx] & (
-                    128 >> (check_col % 8))) != 0
-                j += 1
-
-            i += 1
-
+        # Initialize the neighbour array to boolean
         alive_next = False
-        count = np.count_nonzero(neighbours)
-        if count >= 2 or count <= 3:
+        alive_count = 0
+
+        # Loop over the neighbours to cell row, col and count the number of
+        # alive neighbours
+        for check_row in range(start_row, end_row + 1):
+            for check_col in range(start_col, end_col + 1):
+                neighbour = False
+                col_idx = check_col // 8
+
+                neighbour = (self._curr_state[check_row, col_idx] & (
+                    128 >> (check_col % 8))) != 0
+                if neighbour:
+                    alive_count += 1
+
+        # Check if cell row, col will be alive
+        if alive_count >= 2 or alive_count <= 3:
             alive_next = True
 
         return alive_next
@@ -90,13 +93,13 @@ class GudaLifeBoard:
 
     def cancel(self):
         if self._cancel:
+            step = 0
             self._cancel.set()
 
     def turn(self):
 
         self._cancel = threading.Event()
 
-        print("Starting Run")
         while not self.is_cancelled():
 
             # Create new empty array to hold next frame
@@ -105,14 +108,13 @@ class GudaLifeBoard:
             # Perform one update of entire GoL board
             for row in range(self._height):
                 if self.is_cancelled():
-                    print("Stopping Run on row")
                     break
 
                 for col in range(self._width):
                     if self.is_cancelled():
-                        print("Stopping Run on col")
                         break
 
+                    # Check if current cell will be alive, if so set to 1
                     alive = self.will_be_alive(row, col)
                     if alive:
                         self._next_state[row, col // 8] |= (128 >> (col % 8))
@@ -128,5 +130,3 @@ class GudaLifeBoard:
                     self._step, self._curr_state,
                     priority=GLib.PRIORITY_LOW)
                 time.sleep(0.5)
-
-        print("Stopped")

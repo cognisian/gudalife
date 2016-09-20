@@ -40,6 +40,8 @@ class GudaLifeWindowHandler(GObject.GObject):
 
             widget.get_window().invalidate_rect(update_rect, False)
 
+            # print("Draw Pixel %ix%i" % (x, y))
+
     def on_quit(self, widget, event=None):
         # Cancel the GoL board update thread
         if self._update_thd and self._update_thd.is_alive():
@@ -71,6 +73,8 @@ class GudaLifeWindowHandler(GObject.GObject):
         else:
             self._app.draw_state = False
 
+        # print("Life Draw %ix%i" % (x, y))
+
     def on_life_play(self, widget, event=None):
         widget.set_sensitive(False)
 
@@ -88,12 +92,46 @@ class GudaLifeWindowHandler(GObject.GObject):
             self._update_thd = threading.Thread(target=self._app.board.turn)
         self._update_thd.start()
 
-        while Gtk.events_pending():
-            Gtk.main_iteration_do(False)
+    def on_life_update(self, step, arr):
 
-    def on_life_update(self, step, board):
-        print("Update %i" % step)
-        print("Board %i" % board.size)
+        shape = arr.shape
+        if shape[0] != self._app.board._height:
+            print("Rows %i %i" % (shape[0], self._app.height))
+            return
+        if (shape[1] * 8) != self._app.board._width + 1:
+            print("Cols %i %i" % (shape[1] * 8, self._app.board._width))
+            return
+
+        draw_rect = Gdk.Rectangle()
+        draw_rect.x = 0
+        draw_rect.y = 0
+        draw_rect.width = self._app.board._width
+        draw_rect.height = self._app.board._height
+
+        for row in range(shape[0]):
+            for col in range(shape[1]):
+                for col_bit in range(8):
+                    update_rect = Gdk.Rectangle()
+                    update_rect.x = row
+                    update_rect.y = col + col_bit
+                    update_rect.width = 1
+                    update_rect.height = 1
+
+                    cairo_ctx = cairo.Context(self._surface)
+
+                    Gdk.cairo_rectangle(cairo_ctx, update_rect)
+                    cairo_ctx.set_source_rgb(0, 0, 1)
+                    cairo_ctx.fill()
+
+            # Allow GUI updates
+            while Gtk.events_pending():
+                Gtk.main_iteration_do(False)
+
+        widget = self._app.builder.get_object('life')
+        widget.get_window().invalidate_rect(draw_rect, False)
+
+        # print("Update %i" % step)
+        # print("Board %i" % board.size)
 
     def on_life_stop(self, widget, event=None):
         # Cancel the GoL board update thread
@@ -121,11 +159,14 @@ class GudaLifeWindowHandler(GObject.GObject):
                 self.draw_pixel(widget, x, y)
 
         self._status.push(1, '(%i, %i)' % (x, y))
+        # print("Move %ix%i" % (x, y))
 
     def on_mouse_release(self, widget, event=None):
         if self._surface is None:
             return False
 
         (window, x, y, state) = event.window.get_pointer()
-        if self._app.draw_state & (event.button == 1) & (state & Gdk.ModifierType.BUTTON1_MASK):
+        if self._app.draw_state & (event.button == 1):
             self.draw_pixel(widget, x, y)
+
+        # print("Release %ix%i" % (x, y))

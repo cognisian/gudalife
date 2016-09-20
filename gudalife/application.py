@@ -17,12 +17,10 @@ class GudaLife(Gtk.Application):
         self._window_handler = None
         self._datadir = datadir
 
+        self.builder = None
+
         self.board = None
-
         self.draw_state = True
-
-        self.width = 0
-        self.height = 0
 
     def do_startup(self):
         Gtk.Application.do_startup(self)

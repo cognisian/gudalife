@@ -1,53 +1,49 @@
 import time
 import threading
-import numpy as np
-
+import pprint
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib
 
 
-class GudaLifeBoard:
-    def __init__(self, width=None, height=None, update=None):
+class GudaLifeDict:
+    """ Implement a GudaLife state (alive/dead) interface using a dictionary as a sparse matrix implementation
+    """
+    def __init__(self, width=None, height=None):
 
-        self._width = width
-        self._height = height
+        self.width = width
+        self.height = height
 
-        self._step = 0
-        self._cancel = None
+        self._state = {}
 
-        # create a bit array with width x height bits, but a byte per entry
-        # so the array entries are x = (width // 8) + 1,
-        #                          y = height
-        arr_width = (width // 8) + 1
-        arr_height = height
+    def set_state(self, row, col, value=False):
+        """ Set the alive(true)/dead(false) state at row,col """
+        if row < 0 or row >= self.height:
+            raise IndexError
 
-        self._curr_state = np.zeros((arr_height, arr_width), dtype=np.uint8)
-        self._next_state = None
+        if col < 0 or col >= self.width:
+            raise IndexError
 
-        self._update = update
-
-    def alive(self, row, col):
-        # Mark row,col as alive (1)
-        # This means setting to 1 (=0b00000010 when col = 6) when curr value = 0
+        # Set a single bit to indicate alive/dead at row,col
+        # This means setting to 1 (=b00000010 when col = 6) when curr value = 0
         # Since we are storing an uint8 the left most bit would represent the
         # next bit in col, we use 128 and right shift the bit to calc mask for
         # proper column
-        self._curr_state[row, col // 8] |= (128 >> (col % 8))
+        # We use the get() method on dict to ensure a default value is used as
+        # there are no keys when setting for first time
+        state = self._state.get((row, col // 8), 0)
+        if value:
+            state |= (128 >> (col % 8))
+        else:
+            state &= ~(128 >> (col % 8))
+        self._state[row, col // 8] = state
 
-    def dead(self, row, col):
-        # Mark row,col as dead (0)
-        # This means setting to 0 (=0b11111101 when x = 6) when curr value = 255
-        # Since we are storing an uint8 the left most bit would represent the
-        # next bit in col, we use 128 and right shift the bit to calc mask for
-        # proper column, we use compliment to turn 1 to 0 and all else to 1 so that the bitwise and will only switch to zero the value in col
-        self._curr_state[row, col // 8] &= ~(128 >> (col % 8))
+    def get_state(self, row, col):
+        """ Get the alive/dead state at row,col """
+        return (self._state.get((row, col // 8), 0) & (128 >> (col % 8))) != 0
 
-    def is_alive(self, row, col):
-        return (self._curr_state[row, col // 8] & (128 >> (col % 8))) != 0
-
-    def will_be_alive(self, row, col):
-        # Calculate if the cell located at row, col will be alive or dead next # round
+    def get_neighbours(self, row, col):
+        """ Get the set of neighbours for row, col """
 
         # Check the bounds (no wrap around) of the neighbourhood or row,col
         start_row = row - 1
@@ -55,31 +51,75 @@ class GudaLifeBoard:
             start_row = 0
 
         end_row = row + 1
-        if (end_row >= self._height):
-            end_row = self._height - 1
+        if (end_row >= self.height):
+            end_row = self.height - 1
 
         start_col = col - 1
         if (start_col < 0):
             start_col = 0
 
         end_col = col + 1
-        if (end_col >= self._width):
-            end_col = self._width - 1
+        if (end_col >= self.width):
+            end_col = self.width - 1
+
+        # Loop over the neighbours to cell row,col and add to array
+        rows = end_row - start_row + 1
+        cols = end_col - start_col + 1
+        neighbours = [[0] * cols for _ in range(rows)]
+
+        i = 0
+        for check_row in range(start_row, end_row + 1):
+            j = 0
+            for check_col in range(start_col, end_col + 1):
+                # Do not add the row,col cell value we are checking to
+                # neighbours list
+                if check_col != col and check_row != row:
+                    if self.get_state(check_row, check_col):
+                        neighbours[i][j] = 1
+
+                j += 1
+            i += 1
+
+        return neighbours
+
+
+class GudaLifeBoard:
+    def __init__(self, width=None, height=None, update_func=None):
+
+        self._step = 0
+        self._cancel = None
+
+        self._curr_state = GudaLifeDict(width, height)
+        self._next_state = None
+
+        self._update = update_func
+
+    def alive(self, row, col):
+        # Mark row,col as alive (1)
+        self._curr_state.set_state(row, col, True)
+
+    def dead(self, row, col):
+        # Mark row,col as dead (0)
+        self._curr_state.set_state(row, col, False)
+
+    def is_alive(self, row, col):
+        return self._curr_state.get_state(row, col)
+
+    def will_be_alive(self, row, col):
+        """ Calculate if the cell located at row, col will be alive or dead next round
+        """
+
+        # Get neighbour list
+        neighbours = self._curr_state.get_neighbours(row, col)
 
         # Initialize the neighbour array to boolean
         alive_next = False
         alive_count = 0
 
-        # Loop over the neighbours to cell row, col and count the number of
-        # alive neighbours
-        for check_row in range(start_row, end_row + 1):
-            for check_col in range(start_col, end_col + 1):
-                neighbour = False
-                col_idx = check_col // 8
-
-                neighbour = (self._curr_state[check_row, col_idx] & (
-                    128 >> (check_col % 8))) != 0
-                if neighbour:
+        # Loop over the neighbours and count the number of alive neighbours
+        for check_row in neighbours:
+            for check_col in check_row:
+                if check_col:
                     alive_count += 1
 
         # Check if cell row, col will be alive
@@ -103,21 +143,22 @@ class GudaLifeBoard:
         while not self.is_cancelled():
 
             # Create new empty array to hold next frame
-            self._next_state = np.zeros_like(self._curr_state)
+            self._next_state = GudaLifeDict(self._curr_state.width,
+                                            self._curr_state.height)
 
             # Perform one update of entire GoL board
-            for row in range(self._height):
+            for row in range(self._curr_state.height):
                 if self.is_cancelled():
                     break
 
-                for col in range(self._width):
+                for col in range(self._curr_state.width):
                     if self.is_cancelled():
                         break
 
                     # Check if current cell will be alive, if so set to 1
                     alive = self.will_be_alive(row, col)
                     if alive:
-                        self._next_state[row, col // 8] |= (128 >> (col % 8))
+                        self._next_state.set_state(row, col, True)
 
             # Uppdate step counter and set current state
             self._step += 1

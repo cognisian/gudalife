@@ -35,12 +35,7 @@ class GudaLifeWindowHandler(GObject.GObject):
             Gdk.cairo_rectangle(cairo_ctx, update_rect)
             cairo_ctx.set_source_rgb(1, 1, 1)
             cairo_ctx.fill()
-
-            self._app.board.alive(x, y)
-
             widget.get_window().invalidate_rect(update_rect, False)
-
-            # print("Draw Pixel %ix%i" % (x, y))
 
     def on_quit(self, widget, event=None):
         # Cancel the GoL board update thread
@@ -92,42 +87,42 @@ class GudaLifeWindowHandler(GObject.GObject):
             self._update_thd = threading.Thread(target=self._app.board.turn)
         self._update_thd.start()
 
-    def on_life_update(self, step, arr):
+    def on_life_update(self, update_step):
 
-        shape = arr.shape
-        if shape[0] != self._app.board._height:
-            print("Rows %i %i" % (shape[0], self._app.height))
-            return
-        if (shape[1] * 8) != self._app.board._width + 1:
-            print("Cols %i %i" % (shape[1] * 8, self._app.board._width))
-            return
+        widget = self._app.builder.get_object('life')
+        allocation = widget.get_allocation()
+        surface = widget.get_window().create_similar_surface(
+            cairo.CONTENT_COLOR,
+            allocation.width,
+            allocation.height)
 
         draw_rect = Gdk.Rectangle()
         draw_rect.x = 0
         draw_rect.y = 0
-        draw_rect.width = self._app.board._width
-        draw_rect.height = self._app.board._height
+        draw_rect.width = self._app.board.width()
+        draw_rect.height = self._app.board.height()
 
-        for row in range(shape[0]):
-            for col in range(shape[1]):
-                for col_bit in range(8):
-                    update_rect = Gdk.Rectangle()
-                    update_rect.x = row
-                    update_rect.y = col + col_bit
-                    update_rect.width = 1
-                    update_rect.height = 1
+        for row in range(self._app.board.height()):
+            for col in range(self._app.board.width()):
+                    if self._app.board.alive(row, col):
+                        update_rect = Gdk.Rectangle()
+                        update_rect.x = row
+                        update_rect.y = col
+                        update_rect.width = 1
+                        update_rect.height = 1
 
-                    cairo_ctx = cairo.Context(self._surface)
+                        cairo_ctx = cairo.Context(surface)
 
-                    Gdk.cairo_rectangle(cairo_ctx, update_rect)
-                    cairo_ctx.set_source_rgb(0, 0, 1)
-                    cairo_ctx.fill()
+                        Gdk.cairo_rectangle(cairo_ctx, update_rect)
+                        cairo_ctx.set_source_rgb(0, 0, 1)
+                        cairo_ctx.fill()
 
             # Allow GUI updates
             while Gtk.events_pending():
                 Gtk.main_iteration_do(False)
 
-        widget = self._app.builder.get_object('life')
+        # Set new surface
+        self._surface = surface
         widget.get_window().invalidate_rect(draw_rect, False)
 
         # print("Update %i" % step)
@@ -153,9 +148,14 @@ class GudaLifeWindowHandler(GObject.GObject):
 
     def on_mouse_move(self, widget, event=None):
         (window, x, y, state) = event.window.get_pointer()
+        if x < 0 or x >= self._app.board.width():
+            return
+        if y < 0 or y >= self._app.board.height():
+            return
 
         if self._app.draw_state:
             if state & Gdk.ModifierType.BUTTON1_MASK:
+                self._app.board.alive(x, y)
                 self.draw_pixel(widget, x, y)
 
         self._status.push(1, '(%i, %i)' % (x, y))
@@ -166,7 +166,13 @@ class GudaLifeWindowHandler(GObject.GObject):
             return False
 
         (window, x, y, state) = event.window.get_pointer()
+        if x < 0 or x >= self._app.board.width():
+            return
+        if y < 0 or y >= self._app.board.height():
+            return
+
         if self._app.draw_state & (event.button == 1):
+            self._app.board.alive(x, y)
             self.draw_pixel(widget, x, y)
 
         # print("Release %ix%i" % (x, y))

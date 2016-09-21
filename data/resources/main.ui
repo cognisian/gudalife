@@ -135,6 +135,7 @@
                     <child>
                       <object class="GtkToolButton" id="stop">
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Stops the current Game of Life animation</property>
                         <property name="label" translatable="yes">Stop</property>

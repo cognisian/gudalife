@@ -11,5 +11,19 @@
       <summary>Height of the Game of Life board</summary>
       <description>Set the height in cells of a Game of Life board</description>
     </key>
+    <key type="s" name="background-color">
+      <default>"#000000"</default>
+      <summary>Set the background color of board</summary>
+      <description>
+        Set the background color of the Game Of Life board, this will also be the color of the dead cells
+      </description>
+    </key>
+    <key type="s" name="cell-color">
+      <default>"#FFFFFF"</default>
+      <summary>Set color for an alive cell</summary>
+      <description>
+        Set the color of the cells which are alive on the Game of Life board
+      </description>
+    </key>
   </schema>
 </schemalist>

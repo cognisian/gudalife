@@ -1,6 +1,6 @@
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gio, GLib
+from gi.repository import Gtk, Gio, GLib, Gdk
 
 from gudalife.window import GudaLifeWindowHandler
 from gudalife.board import GudaLifeBoard
@@ -15,7 +15,6 @@ class GudaLife(Gtk.Application):
 
         self._window = None
         self._window_handler = None
-        self._prefs_handler = None
         self._datadir = datadir
 
         self.builder = None
@@ -32,18 +31,10 @@ class GudaLife(Gtk.Application):
             self._datadir + '/gudalife-resources.gresource')
         Gio.Resource._register(resource)
 
-        # Load app settings
-        # schema_source = Gio.SettingsSchemaSource.new_from_directory(
-        #     DIRECTORY, Gio.SettingsSchemaSource.get_default(), False)
-        # schema = Gio.SettingsSchemaSource.lookup(
-        #     schema_source, schema_id, False)
-        #
-        # if not schema:
-        #     raise Exception("Cannot get GSettings  schema")
-        #
-        # instance = Gio.Settings.new_full(schema, None, path)
+        # Load Settings
         self.settings = Gio.Settings('com.cognisian.gudalife')
 
+        # Load GUI Builder
         self.builder = Gtk.Builder()
 
         # Build AppMenu
@@ -79,8 +70,8 @@ class GudaLife(Gtk.Application):
         drawarea = self.builder.get_object('life')
         rect = drawarea.get_allocation()
         self.board = GudaLifeBoard(
-            rect.width,
-            rect.height,
+            self.settings.get_int('width'),
+            self.settings.get_int('height'),
             self._window_handler.on_life_update)
 
     def do_shutdown(self):
@@ -117,6 +108,16 @@ class GudaLife(Gtk.Application):
         height = self.settings.get_int('height')
         height_widget.set_value(height)
 
+        backgd_color_widget = self.builder.get_object('backgd_color')
+        color = Gdk.RGBA(0, 0, 0)
+        color.parse(self.settings.get_string('background-color'))
+        backgd_color_widget.set_rgba(color)
+
+        cell_color_widget = self.builder.get_object('cell_color')
+        color = Gdk.RGBA(0, 0, 0)
+        color.parse(self.settings.get_string('cell-color'))
+        cell_color_widget.set_rgba(color)
+
         # Show Prefs dialog
         resp = prefs.run()
 
@@ -124,6 +125,12 @@ class GudaLife(Gtk.Application):
         if resp == 1:
             self.settings.set_int('width', width_widget.get_value())
             self.settings.set_int('height', height_widget.get_value())
+            self.settings.set_string(
+                'background-color',
+                backgd_color_widget.get_rgba().to_string())
+            self.settings.set_string(
+                'cell-color',
+                cell_color_widget.get_rgba().to_string())
             self.settings.sync()
 
         prefs.destroy()

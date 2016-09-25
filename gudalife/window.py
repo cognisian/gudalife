@@ -16,11 +16,11 @@ class GudaLifeWindowHandler(GObject.GObject):
         self._status.push(1, 'Welcome to GudaLife')
 
         self._surface = None
-        self._drawing = True
+
         self._update_thd = None
 
     def draw_pixel(self, widget, x, y):
-        if self._drawing:
+        if self._app.draw_state:
             # Create the "pixel" only if not running animatiion
             update_rect = Gdk.Rectangle()
             update_rect.x = x

@@ -70,7 +70,7 @@ class GSchemasCommand(distutils.cmd.Command):
         self.announce('Starting build of schemas', level=distutils.log.INFO)
 
         # Get list of XML schema files
-        schemas = glob.glob('data/schemas/*.xml')
+        schemas = glob.glob('data/schemas')
         for schema in schemas:
             command = ['glib-compile-schemas']
             command.append('%s' % schema)

@@ -180,7 +180,7 @@ class GudaLifeBoard:
             self._step += 1
 
             # notify listeners of update
-            if self._update is not None:
+            if self._update is not None and not self.is_cancelled:
                 GLib.idle_add(
                     self._update,
                     self._step,

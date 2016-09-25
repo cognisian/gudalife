@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="com.cognisian.gudalife" path="/org/gnome/gudalife/">
+    <key type="i" name="width">
+      <default>1000</default>
+      <summary>Width of the Game of Life board</summary>
+      <description>Set the width in cells of a Game of Life board</description>
+    </key>
+    <key type="i" name="height">
+      <default>1000</default>
+      <summary>Height of the Game of Life board</summary>
+      <description>Set the height in cells of a Game of Life board</description>
+    </key>
+  </schema>
+</schemalist>

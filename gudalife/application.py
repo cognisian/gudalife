@@ -15,10 +15,12 @@ class GudaLife(Gtk.Application):
 
         self._window = None
         self._window_handler = None
+        self._prefs_handler = None
         self._datadir = datadir
 
         self.builder = None
 
+        self.settings = None
         self.board = None
         self.draw_state = True
 
@@ -29,6 +31,18 @@ class GudaLife(Gtk.Application):
         resource = Gio.resource_load(
             self._datadir + '/gudalife-resources.gresource')
         Gio.Resource._register(resource)
+
+        # Load app settings
+        # schema_source = Gio.SettingsSchemaSource.new_from_directory(
+        #     DIRECTORY, Gio.SettingsSchemaSource.get_default(), False)
+        # schema = Gio.SettingsSchemaSource.lookup(
+        #     schema_source, schema_id, False)
+        #
+        # if not schema:
+        #     raise Exception("Cannot get GSettings  schema")
+        #
+        # instance = Gio.Settings.new_full(schema, None, path)
+        self.settings = Gio.Settings('com.cognisian.gudalife')
 
         self.builder = Gtk.Builder()
 
@@ -44,6 +58,10 @@ class GudaLife(Gtk.Application):
 
         simpleAction = Gio.SimpleAction.new('about', None)
         simpleAction.connect('activate', self.on_about)
+        self.add_action(simpleAction)
+
+        simpleAction = Gio.SimpleAction.new('preferences', None)
+        simpleAction.connect('activate', self.on_preferences)
         self.add_action(simpleAction)
 
     def do_activate(self):
@@ -82,3 +100,30 @@ class GudaLife(Gtk.Application):
         about = self.builder.get_object('about')
         about.set_transient_for(self._window)
         about.show()
+
+    def on_preferences(self, action, param=None):
+        self.builder.add_from_resource(
+            '/com/cognisian/gudalife/ui/preferences.ui')
+        prefs = self.builder.get_object('prefs')
+        prefs.set_transient_for(self._window)
+        prefs.set_response_sensitive(1, True)
+
+        # Set values based on schema values
+        width_widget = self.builder.get_object('width')
+        width = self.settings.get_int('width')
+        width_widget.set_value(width)
+
+        height_widget = self.builder.get_object('height')
+        height = self.settings.get_int('height')
+        height_widget.set_value(height)
+
+        # Show Prefs dialog
+        resp = prefs.run()
+
+        # Process response_id from dialog
+        if resp == 1:
+            self.settings.set_int('width', width_widget.get_value())
+            self.settings.set_int('height', height_widget.get_value())
+            self.settings.sync()
+
+        prefs.destroy()

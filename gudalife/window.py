@@ -1,7 +1,5 @@
 import threading
 
-import numpy as np
-
 import cairo
 import gi
 gi.require_version('Gtk', '3.0')
@@ -125,6 +123,7 @@ class GudaLifeWindowHandler(GObject.GObject):
         self._surface = surface
         widget.get_window().invalidate_rect(draw_rect, False)
 
+        self._status.push(1, "Life Step %i" % update_step)
         # print("Update %i" % step)
         # print("Board %i" % board.size)
 
